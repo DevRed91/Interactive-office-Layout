@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link href="https://fonts.googleapis.com/css?family=Montserrat|Raleway&display=swap" rel="stylesheet">
+        <title>Babylon.js sample code</title>
+
+        <!-- Babylon.js -->
+        <script src="https://code.jquery.com/pep/0.4.2/pep.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/ammo.js"></script>
+        <script src="https://preview.babylonjs.com/cannon.js"></script>
+        <script src="https://preview.babylonjs.com/Oimo.js"></script>
+        <script src="https://preview.babylonjs.com/gltf_validator.js"></script>
+        <script src="https://preview.babylonjs.com/earcut.min.js"></script>
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="babylon.glTF2FileLoader.js"></script>
+        <script src="babylon.js"></script>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+
+        </style>
+    </head>
+<body>
+    <canvas id="renderCanvas">
+
+    </canvas>
+
+    <script>
+        var canvas = document.querySelector("#renderCanvas");
+
+        var createScene = function () {
+
+        // Create the scene space
+        var scene = new BABYLON.Scene(engine);
+            scene.clearColor = new BABYLON.Color3.FromHexString("#e5e5e5");
+
+        // Add a camera to the scene and attach it to the canvas
+        var camera = new BABYLON.ArcRotateCamera("Camera", Math.PI / 2, -Math.PI / 2, 100, BABYLON.Vector3(1,0,1), scene);
+            camera.attachControl(canvas, true);
+            camera.setPosition(new BABYLON.Vector3(-10 ,40, -10));
+            camera.lowerRadiusLimit = 30;
+            camera.upperRadiusLimit = 30;
+            camera.useFramingBehavior = true;
+
+        //adding lights
+        var light1 = new BABYLON.HemisphericLight("light1", new BABYLON.Vector3(0, 100, 0), scene);
+
+        //Adding button to add walls
+        var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+        var selectedMesh;
+
+        var clicks = 0;
+
+        //office model
+        var wall, wall2, floor, glassWall1, glassWall2, glassWall3;
+
+        //floor material
+        var floorMaterial = new BABYLON.StandardMaterial("floor material", scene);
+            floorMaterial.diffuseColor = new BABYLON.Color3.White();
+            floorMaterial.specularColor = new BABYLON.Color3.Black();
+
+        //wall material
+        var wallMaterial = new BABYLON.StandardMaterial("wall material", scene);
+            wallMaterial.diffuseColor = new BABYLON.Color3.FromHexString("#D4E6F1");
+            wallMaterial.specularColor = new BABYLON.Color3.Black();
+
+        //exterior glass wall material
+        var glassMaterialExt = new BABYLON.StandardMaterial("glass wall material", scene);
+            glassMaterialExt.diffuseColor = new BABYLON.Color3.FromHexString("#C0C0C0");
+            glassMaterialExt.alpha = 0.25;
+
+        // //glass wall group
+        // var glassWallGroup = [glassWall1, glassWall2, glassWall3];
+
+        //desk properties
+        var tableTop, legs, tile;
+
+        BABYLON.SceneLoader.ImportMesh(null,"./","gltf/office space/office space2.glb",scene,function (plan) {
+            floor = plan[0].getChildMeshes()[0];
+            floor.material = floorMaterial;
+
+            glassWall1 = plan[0].getChildMeshes()[1];
+            glassWall1.material = glassMaterialExt;
+
+            glassWall2 = plan[0].getChildMeshes()[2];
+            glassWall2.material = glassMaterialExt;
+
+            glassWall3 = plan[0].getChildMeshes()[3];
+            glassWall3.material = glassMaterialExt
+
+            wall = plan[0].getChildMeshes()[4];
+            wall.material = wallMaterial;
+
+            wall2 = plan[0].getChildMeshes()[5];
+            wall2.material = wallMaterial;
+
+            floor.position = new BABYLON.Vector3(0,0,0);
+
+            var makeOverOut = function (mesh) {
+            mesh.actionManager = new BABYLON.ActionManager(scene);
+                mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh.material, "emissiveColor", mesh.material.emissiveColor));
+                mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPickTrigger, mesh.material, "emissiveColor", BABYLON.Color3.Yellow()));
+                
+            }
+
+            // makeOverOut(wall);
+            makeOverOut(glassWall1);
+            makeOverOut(glassWall2);
+            makeOverOut(glassWall3);
+
+        });
+
+        //table top material
+        var tableTopMaterial = new BABYLON.StandardMaterial("tabel top material", scene);
+            tableTopMaterial.diffuseTexture = new BABYLON.Texture("./img/wood texture2.jpg", scene);
+            tableTopMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+            tableTopMaterial.diffuseTexture.uScale = 2;
+            tableTopMaterial.diffuseTexture.vScale = 2;
+        //legs material
+        var legsMaterial = new BABYLON.StandardMaterial("legs material", scene);
+            legsMaterial.diffuseColor = new BABYLON.Color3.FromHexString("0xC0C0C0");
+            legsMaterial.specularColor = new BABYLON.Color3.Black();
+
+        //tile material
+        var tileMaterial = new BABYLON.StandardMaterial("legs material", scene);
+            tileMaterial.diffuseColor = new BABYLON.Color3.Yellow();
+            tileMaterial.specularColor = new BABYLON.Color3.Black();
+
+        //button color change on hover
+        var buttonColorChange = function (button){
+            button.onPointerEnterObservable.add(function() {
+                button.background = "grey";
+            });
+            button.onPointerOutObservable.add(function() {
+                button.background = "#e5e5e5";
+            });
+        }
+
+        //collab spaces
+        var collabGround;
+        var frames, chair, chairSupport, cushion, poofs;
+        
+        //ground material
+        var collabGroundMat = new BABYLON.StandardMaterial("ground material", scene);
+            collabGroundMat.diffuseColor = new BABYLON.Color3.Red();
+            collabGroundMat.specularColor = new BABYLON.Color3.Black();
+            collabGroundMat.alpha = 0;
+        
+        //frames material
+        var framesMat = new BABYLON.StandardMaterial("frames Material", scene);
+            framesMat.diffuseColor = new BABYLON.Color3.FromHexString("#7d5001");
+            framesMat.specularColor = new BABYLON.Color3.Black();
+
+        //cushion material
+        var cushionMat = new BABYLON.StandardMaterial("cushion Material1", scene);
+            cushionMat.diffuseColor = new BABYLON.Color3.Blue();
+            cushionMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+        //poof material
+        var poofMat = new BABYLON.StandardMaterial("poof Material1", scene);
+            poofMat.diffuseColor = new BABYLON.Color3.FromHexString("#DDFE04");
+            poofMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+        //GUI Rectangle panel
+        var rect1 = new BABYLON.GUI.Rectangle();
+            rect1.width = "40%";
+            rect1.height = "70px";
+            rect1.left = "0%";
+            rect1.top = "40%";
+
+            advancedTexture.addControl(rect1);
+
+            //workstation button
+            var workspace = BABYLON.GUI.Button.CreateImageWithCenterTextButton("butWork", " ", "https://cdn.onlinewebfonts.com/svg/img_506916.png");
+                workspace.width = "50px";
+                workspace.height = "50px";
+                workspace.color = "blue";
+                workspace.background = "#e5e5e5";
+                workspace.left = "-35%";
+                workspace.cornerRadius = 5;
+
+                buttonColorChange(workspace);
+
+                workspace.onPointerClickObservable.add(function(){
+                    clicks++;
+
+                    if (clicks){
+                        BABYLON.SceneLoader.ImportMesh(null,"./","gltf/office space/table/table2.glb",scene,function (desk) {
+                                tile = desk[0].getChildMeshes()[0];
+                                tile.material = tileMaterial;
+                                
+                                legs = desk[0].getChildMeshes()[2];
+                                legs.material = legsMaterial;
+
+                                tableTop = desk[0].getChildMeshes()[1];
+                                tableTop.material = tableTopMaterial;
+
+                        });
+
+                    }
+                });
+
+                rect1.addControl(workspace);
+
+            //Collab button
+            var collabSpaces = BABYLON.GUI.Button.CreateImageWithCenterTextButton("collab spaces", " ", "./icons/collab.png");
+                collabSpaces.width = "50px";
+                collabSpaces.height = "50px";
+                collabSpaces.color = "yellow";
+                collabSpaces.background = "#e5e5e5";
+                collabSpaces.cornerRadius = 5;
+
+                //color change on hover
+                buttonColorChange(collabSpaces);
+
+                collabSpaces.onPointerClickObservable.add(function(){
+                    clicks++;
+
+                    if (clicks){
+                        BABYLON.SceneLoader.ImportMesh(null,"./","gltf/office space/collab/frames.glb",scene,function (frame) {
+                                // collabGround = collab[0].getChildMeshes()[2];
+                                // collabGround.material = collabGroundMat;
+                                frames = frame[0].getChildMeshes()[0];
+                                frames.material = framesMat;
+
+                        });
+
+                        BABYLON.SceneLoader.ImportMesh(null,"./","gltf/office space/collab/collab.glb",scene,function (collab) {
+
+                                poofs = collab[0].getChildMeshes()[0];
+                                poofs.material = poofMat;
+
+                                chair = collab[0].getChildMeshes()[1];
+                                chair.material = cushionMat;
+
+                                cushion = collab[0].getChildMeshes()[2];
+                                cushion.material = cushionMat;
+
+                                chairSupport = collab[0].getChildMeshes()[3];
+                                chairSupport.material = framesMat;
+                        });
+
+                    }
+                });
+
+                rect1.addControl(collabSpaces);
+
+            //meeting button
+            var meetingSpaces = BABYLON.GUI.Button.CreateImageWithCenterTextButton("meeting spaces", " ", "./icons/man.png");
+                meetingSpaces.width = "50px";
+                meetingSpaces.height = "50px";
+                meetingSpaces.color = "green";
+                meetingSpaces.background = "#e5e5e5";
+                meetingSpaces.left = "35%";
+                meetingSpaces.cornerRadius = 5;
+
+                //color change on hover
+                buttonColorChange(meetingSpaces);
+
+                rect1.addControl(meetingSpaces);
+
+        // Button for Plan
+        var butPlan = BABYLON.GUI.Button.CreateSimpleButton("butPlan", "Top View");
+            butPlan.width = "90px";
+            butPlan.height = "40px";
+            butPlan.color = "black";
+            butPlan.background = "#e5e5e5";
+            butPlan.left = "42%";
+            butPlan.top = "-40%";
+            butPlan.cornerRadius = 5;
+            
+            //color change on hover
+            buttonColorChange(butPlan);
+
+            var showPlan = 0;
+            butPlan.onPointerClickObservable.add(function(){
+                showPlan++;
+                if (showPlan){
+                    camera.setPosition(new BABYLON.Vector3(0,5,0));
+                }
+            });
+            advancedTexture.addControl(butPlan);
+
+        //Button for isometric view
+        var butIso = BABYLON.GUI.Button.CreateSimpleButton("butIso", "Iso View");
+            butIso.width = "90px";
+            butIso.height = "40px";
+            butIso.color = "black";
+            butIso.left = "35%";
+            butIso.top = "-40%";
+            butIso.background = "#e5e5e5";
+            butIso.cornerRadius = 5;
+            
+            //color change on hover
+            buttonColorChange(butIso);
+
+            var showIso = 0;
+            butIso.onPointerClickObservable.add(function(){
+                showIso++;
+                if (showIso % 1 == 0){
+                    camera.setPosition(new BABYLON.Vector3(-2 ,2,-2));
+                }
+            });
+
+            advancedTexture.addControl(butIso);
+
+        //DOM event
+      canvas.addEventListener("click", function(e) {
+          var pickResult = scene.pick(scene.pointerX, scene.pointerY);
+
+           if(pickResult.hit) {
+               if(selectedMesh == null) {
+                 selectedMesh.visibility = 1.0;
+                }
+                selectedMesh = pickResult.pickedMesh;
+
+                selectedMesh.visibility = 0.8;
+
+            }
+        });
+
+        return scene;
+
+        };
+        __createScene = createScene;
+
+        var engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+        var scene = createScene();
+
+            engine.runRenderLoop(function () {
+                if (scene) {
+                    scene.render();
+                }
+            });
+
+            // Resize
+            window.addEventListener("resize", function () {
+                engine.resize();
+            });
+
+    </script>
+</body>
+</html>
