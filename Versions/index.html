@@ -72,58 +72,27 @@
 
         var clicks = 0;
 
-        //click mesh to highlight
-        var makeOverOut = function (mesh) {
-            mesh.actionManager = new BABYLON.ActionManager(scene);
-            mesh.actionManager.registerAction(
-                new BABYLON.SetValueAction(
-                    BABYLON.ActionManager.OnPointerOutTrigger, 
-                    mesh.material, 
-                    "emissiveColor", 
-                    mesh.material.emissiveColor
-                ));
-            mesh.actionManager.registerAction(
-                new BABYLON.SetValueAction(
-                    BABYLON.ActionManager.OnPickTrigger, 
-                    mesh.material, 
-                    "emissiveColor", 
-                    BABYLON.Color3.Yellow()
-                ));
-        }
-
-        //color of mesh
-        var meshColor = function (meshMat, color, num){
-            meshMat.diffuseColor = new BABYLON.Color3.FromHexString(color);
-            meshMat.specularColor = new BABYLON.Color3.Black();
-            meshMat.alpha = num;
-        }
-
-        //button properties
-        var buttonProp = function (button, left, top){
-            button.width = "50px";
-            button.height = "50px";
-            button.color = "black";
-            button.background = "#e5e5e5";
-            button.left = left;
-            button.top = top;
-            button.cornerRadius = 5;
-        }
-
         //office model
         var wall, wall2, floor, glassWall1, glassWall2, glassWall3;
 
         //floor material
         var floorMaterial = new BABYLON.StandardMaterial("floor material", scene);
-            meshColor(floorMaterial, "#FFFFFF", 1);
+            floorMaterial.diffuseColor = new BABYLON.Color3.White();
+            floorMaterial.specularColor = new BABYLON.Color3.Black();
 
         //wall material
         var wallMaterial = new BABYLON.StandardMaterial("wall material", scene);
-            meshColor(wallMaterial, "#D4E6F1", 1);
+            wallMaterial.diffuseColor = new BABYLON.Color3.FromHexString("#D4E6F1");
+            wallMaterial.specularColor = new BABYLON.Color3.Black();
 
         //exterior glass wall material
         var glassMaterialExt = new BABYLON.StandardMaterial("glass wall material", scene);
-            meshColor(glassMaterialExt, "#C0C0C0", 0.25);
-        
+            glassMaterialExt.diffuseColor = new BABYLON.Color3.FromHexString("#C0C0C0");
+            glassMaterialExt.alpha = 0.25;
+
+        // //glass wall group
+        // var glassWallGroup = [glassWall1, glassWall2, glassWall3];
+
         //desk properties
         var tableTop, legs, tile;
 
@@ -148,6 +117,13 @@
 
             floor.position = new BABYLON.Vector3(0,0,0);
 
+            var makeOverOut = function (mesh) {
+            mesh.actionManager = new BABYLON.ActionManager(scene);
+                mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh.material, "emissiveColor", mesh.material.emissiveColor));
+                mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPickTrigger, mesh.material, "emissiveColor", BABYLON.Color3.Yellow()));
+                
+            }
+
             // makeOverOut(wall);
             makeOverOut(glassWall1);
             makeOverOut(glassWall2);
@@ -157,15 +133,19 @@
 
         //table top material
         var tableTopMaterial = new BABYLON.StandardMaterial("tabel top material", scene);
-            meshColor(tableTopMaterial, "#FFE7C7", 1);
-
+            tableTopMaterial.diffuseTexture = new BABYLON.Texture("./img/wood texture2.jpg", scene);
+            tableTopMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+            tableTopMaterial.diffuseTexture.uScale = 2;
+            tableTopMaterial.diffuseTexture.vScale = 2;
         //legs material
         var legsMaterial = new BABYLON.StandardMaterial("legs material", scene);
-            meshColor(legsMaterial, "#C0C0C0", 1);
+            legsMaterial.diffuseColor = new BABYLON.Color3.FromHexString("0xC0C0C0");
+            legsMaterial.specularColor = new BABYLON.Color3.Black();
 
         //tile material
-        var tileMaterial = new BABYLON.StandardMaterial("tile material", scene);
-            meshColor(tileMaterial, "#CEFF00", 1);
+        var tileMaterial = new BABYLON.StandardMaterial("legs material", scene);
+            tileMaterial.diffuseColor = new BABYLON.Color3.Yellow();
+            tileMaterial.specularColor = new BABYLON.Color3.Black();
 
         //button color change on hover
         var buttonColorChange = function (button){
@@ -180,22 +160,27 @@
         //collab spaces
         var collabGround;
         var frames, chair, chairSupport, cushion, poofs;
-
+        
         //ground material
         var collabGroundMat = new BABYLON.StandardMaterial("ground material", scene);
-            meshColor(collabGroundMat, "#FF0000", 0);
-       
+            collabGroundMat.diffuseColor = new BABYLON.Color3.Red();
+            collabGroundMat.specularColor = new BABYLON.Color3.Black();
+            collabGroundMat.alpha = 0;
+        
         //frames material
         var framesMat = new BABYLON.StandardMaterial("frames Material", scene);
-            meshColor(framesMat, "#7d5001", 1);
+            framesMat.diffuseColor = new BABYLON.Color3.FromHexString("#7d5001");
+            framesMat.specularColor = new BABYLON.Color3.Black();
 
         //cushion material
         var cushionMat = new BABYLON.StandardMaterial("cushion Material1", scene);
-            meshColor(cushionMat, "#2874A6", 1);
+            cushionMat.diffuseColor = new BABYLON.Color3.Blue();
+            cushionMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
         //poof material
         var poofMat = new BABYLON.StandardMaterial("poof Material1", scene);
-            meshColor(poofMat, "#DDFE04", 1);
+            poofMat.diffuseColor = new BABYLON.Color3.FromHexString("#DDFE04");
+            poofMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
         //GUI Rectangle panel
         var rect1 = new BABYLON.GUI.Rectangle();
@@ -208,8 +193,12 @@
 
             //workstation button
             var workspace = BABYLON.GUI.Button.CreateImageWithCenterTextButton("butWork", " ", "https://cdn.onlinewebfonts.com/svg/img_506916.png");
-
-                buttonProp(workspace,"-35%", "0%");
+                workspace.width = "50px";
+                workspace.height = "50px";
+                workspace.color = "blue";
+                workspace.background = "#e5e5e5";
+                workspace.left = "-35%";
+                workspace.cornerRadius = 5;
 
                 buttonColorChange(workspace);
 
@@ -236,9 +225,13 @@
 
             //Collab button
             var collabSpaces = BABYLON.GUI.Button.CreateImageWithCenterTextButton("collab spaces", " ", "./icons/collab.png");
+                collabSpaces.width = "50px";
+                collabSpaces.height = "50px";
+                collabSpaces.color = "yellow";
+                collabSpaces.background = "#e5e5e5";
+                collabSpaces.cornerRadius = 5;
 
-                buttonProp(collabSpaces,"0%", "0%");
-
+                //color change on hover
                 buttonColorChange(collabSpaces);
 
                 collabSpaces.onPointerClickObservable.add(function(){
@@ -246,6 +239,8 @@
 
                     if (clicks){
                         BABYLON.SceneLoader.ImportMesh(null,"./","gltf/office space/collab/frames.glb",scene,function (frame) {
+                                // collabGround = collab[0].getChildMeshes()[2];
+                                // collabGround.material = collabGroundMat;
                                 frames = frame[0].getChildMeshes()[0];
                                 frames.material = framesMat;
 
@@ -273,8 +268,12 @@
 
             //meeting button
             var meetingSpaces = BABYLON.GUI.Button.CreateImageWithCenterTextButton("meeting spaces", " ", "./icons/man.png");
-
-                buttonProp(meetingSpaces,"35%", "0%");
+                meetingSpaces.width = "50px";
+                meetingSpaces.height = "50px";
+                meetingSpaces.color = "green";
+                meetingSpaces.background = "#e5e5e5";
+                meetingSpaces.left = "35%";
+                meetingSpaces.cornerRadius = 5;
 
                 //color change on hover
                 buttonColorChange(meetingSpaces);
