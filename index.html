@@ -91,6 +91,31 @@
                 ));
         }
 
+        //click to show mesh
+        var clickToShow = function (mesh){
+            mesh.actionManager = new BABYLON.ActionManager(scene);
+            mesh.actionManager
+           .registerAction(
+               new BABYLON.InterpolateValueAction(
+                   BABYLON.ActionManager.OnPickTrigger,
+                   mesh.material,
+                    "alpha",
+                    0.5,
+
+               )
+           )
+           .then(
+               new BABYLON.InterpolateValueAction(
+                   BABYLON.ActionManager.OnPickTrigger,
+                   mesh.material,
+                   "alpha",
+                    0,
+
+                )
+
+           );
+        }
+
         //color of mesh
         var meshColor = function (meshMat, color, num){
             meshMat.diffuseColor = new BABYLON.Color3.FromHexString(color);
@@ -107,6 +132,16 @@
             button.left = left;
             button.top = top;
             button.cornerRadius = 5;
+        };
+
+        //button color change on hover
+        var buttonColorChange = function (button){
+            button.onPointerEnterObservable.add(function() {
+                button.background = "grey";
+            });
+            button.onPointerOutObservable.add(function() {
+                button.background = "#e5e5e5";
+            });
         }
 
         //office model
@@ -167,19 +202,30 @@
         var tileMaterial = new BABYLON.StandardMaterial("tile material", scene);
             meshColor(tileMaterial, "#CEFF00", 1);
 
-        //button color change on hover
-        var buttonColorChange = function (button){
-            button.onPointerEnterObservable.add(function() {
-                button.background = "grey";
-            });
-            button.onPointerOutObservable.add(function() {
-                button.background = "#e5e5e5";
-            });
-        }
-
         //collab spaces
         var collabGround;
         var frames, chair, chairSupport, cushion, poofs;
+
+        //meeting rooms
+        var meetingGlass, meetingWall, meetingTables, meetingChairs;
+
+        var meetGlassMat, meetWallMat, meetingTablesMat, meetingChairsMat;
+
+        //meeting glass wall material
+        var meetGlassMat = new BABYLON.StandardMaterial("meeting wall material", scene);
+            meshColor(meetGlassMat, "#C0C0C0", 0.25);
+
+        //meeting solid wall material
+        var meetWallMat = new BABYLON.StandardMaterial("meeting glasswall material", scene);
+            meshColor(meetWallMat, "#808080", 1);
+
+        //meeting tabletop
+        var meetingTablesMat = new BABYLON.StandardMaterial("meeting table material", scene);
+            meshColor(meetingTablesMat, "#FFE7C7", 1);
+
+        //meeting chairs material
+        var meetingChairsMat = new BABYLON.StandardMaterial("meeting chair material", scene);
+            meshColor(meetingChairsMat, "#1A1A1A", 1);
 
         //ground material
         var collabGroundMat = new BABYLON.StandardMaterial("ground material", scene);
@@ -192,6 +238,10 @@
         //cushion material
         var cushionMat = new BABYLON.StandardMaterial("cushion Material1", scene);
             meshColor(cushionMat, "#2874A6", 1);
+
+        //chair support material
+        var chairMat = new BABYLON.StandardMaterial("chair Material1", scene);
+            meshColor(chairMat, "#5B3000", 1);
 
         //poof material
         var poofMat = new BABYLON.StandardMaterial("poof Material1", scene);
@@ -218,14 +268,14 @@
 
                     if (clicks){
                         BABYLON.SceneLoader.ImportMesh(null,"./","gltf/office space/table/table2.glb",scene,function (desk) {
-                                tile = desk[0].getChildMeshes()[0];
-                                tile.material = tileMaterial;
-                                
-                                legs = desk[0].getChildMeshes()[2];
-                                legs.material = legsMaterial;
+                            tile = desk[0].getChildMeshes()[0];
+                            tile.material = tileMaterial;
+                            
+                            legs = desk[0].getChildMeshes()[2];
+                            legs.material = legsMaterial;
 
-                                tableTop = desk[0].getChildMeshes()[1];
-                                tableTop.material = tableTopMaterial;
+                            tableTop = desk[0].getChildMeshes()[1];
+                            tableTop.material = tableTopMaterial;
 
                         });
 
@@ -237,7 +287,7 @@
             //Collab button
             var collabSpaces = BABYLON.GUI.Button.CreateImageWithCenterTextButton("collab spaces", " ", "./icons/collab.png");
 
-                buttonProp(collabSpaces,"0%", "0%");
+                buttonProp(collabSpaces,"35%", "0%");
 
                 buttonColorChange(collabSpaces);
 
@@ -248,7 +298,9 @@
                         BABYLON.SceneLoader.ImportMesh(null,"./","gltf/office space/collab/frames.glb",scene,function (frame) {
                                 frames = frame[0].getChildMeshes()[0];
                                 frames.material = framesMat;
-
+                                
+                                // makeOverOut(wall);
+                                makeOverOut(frames);
                         });
 
                         BABYLON.SceneLoader.ImportMesh(null,"./","gltf/office space/collab/collab.glb",scene,function (collab) {
@@ -263,7 +315,15 @@
                                 cushion.material = cushionMat;
 
                                 chairSupport = collab[0].getChildMeshes()[3];
-                                chairSupport.material = framesMat;
+                                chairSupport.material = chairMat;
+                        });
+
+                        BABYLON.SceneLoader.ImportMesh(null,"./","gltf/office space/collab/groundCollab.glb",scene,function (collab) {
+                                collabGround = collab[0].getChildMeshes()[0];
+                                collabGround.material = collabGroundMat;
+                                
+                                // click to show mesh
+                                clickToShow(collabGround);
                         });
 
                     }
@@ -273,14 +333,43 @@
 
             //meeting button
             var meetingSpaces = BABYLON.GUI.Button.CreateImageWithCenterTextButton("meeting spaces", " ", "./icons/man.png");
-
-                buttonProp(meetingSpaces,"35%", "0%");
+                buttonProp(meetingSpaces,"0%", "0%");
 
                 //color change on hover
                 buttonColorChange(meetingSpaces);
+                
+                meetingSpaces.onPointerClickObservable.add(function(){
+                    clicks++;
+
+                    if (clicks){
+                        BABYLON.SceneLoader.ImportMesh(null,"./","gltf/office space/collab/meeting.glb",scene,function (meeting) {
+                            meetingGlass = meeting[0].getChildMeshes()[0];
+                            meetingGlass.material = meetGlassMat;
+
+                            meetingWall = meeting[0].getChildMeshes()[4];
+                            meetingWall.material = meetWallMat;
+
+                            meetingTables = meeting[0].getChildMeshes()[1];
+                            meetingTables.material = meetingTablesMat;
+
+                            meetingChairs = meeting[0].getChildMeshes()[2];
+                            meetingChairs.material = meetingChairsMat;
+
+
+                        });
+                    }
+                });
 
                 rect1.addControl(meetingSpaces);
 
+        //sun button
+        var sunButton = BABYLON.GUI.Button.CreateImageWithCenterTextButton("sun button", " ", "./icons/sun.png");
+            buttonProp(sunButton,"-42%", "40%");
+            //color change on hover
+            buttonColorChange(sunButton);
+
+            advancedTexture.addControl(sunButton);
+        
         // Button for Plan
         var butPlan = BABYLON.GUI.Button.CreateSimpleButton("butPlan", "Top View");
             butPlan.width = "90px";
@@ -327,7 +416,7 @@
             advancedTexture.addControl(butIso);
 
         //DOM event
-      canvas.addEventListener("click", function(e) {
+        canvas.addEventListener("click", function(e) {
           var pickResult = scene.pick(scene.pointerX, scene.pointerY);
 
            if(pickResult.hit) {
@@ -363,4 +452,3 @@
     </script>
 </body>
 </html>
-
